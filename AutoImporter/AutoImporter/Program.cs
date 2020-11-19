@@ -11,6 +11,7 @@ using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.Graphics.Data;
+using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.TextureConverter;
@@ -19,17 +20,34 @@ namespace AutoImporter
 {
     class Program
     {
+        static bool overwrite = false;
+
         static void Main(string[] args)
         {
             if (args.Length < 2)
             {
-                Console.WriteLine($"{typeof(Program).Assembly.Location} <file/or/folder/to/import> <folder/to/export/to>");
+                Console.WriteLine($"{typeof(Program).Assembly.Location} <file/or/folder/to/import> <folder/to/export/to> [overwrite=false]");
                 return;
             }
             if (!Directory.Exists(args[1]))
             {
                 Console.WriteLine($"{args[1]} is an invalid folder.");
                 return;
+            }
+            if (args.Length >= 3 && bool.TrueString.ToLower().Equals(args[2].ToLower()))
+            {
+                Console.WriteLine("Overwrite flag set to true.");
+                if (!bool.TrueString.ToUpper().Equals(args[2]))
+                {
+                    Console.WriteLine("Overwrite existing [true/false]? Set overwrite flag to \"TRUE\" (case sensitive) to skip this message.");
+                    string input = Console.ReadLine();
+                    if (bool.TrueString.ToLower().Equals(input.ToLower()))
+                    {
+                        overwrite = true;
+                    }
+                }
+                else
+                    overwrite = true;
             }
             Console.WriteLine($"Importing assets... ({args[0]})");
             if (Directory.Exists(args[0]))
@@ -66,12 +84,23 @@ namespace AutoImporter
                     {
                         TextureAsset tex = NormalMapTextureFactory.Create();
                         tex.Source = new UFile(relativePath);
-                        AssetFileSerializer.Save($"{output}/{name}{TextureAsset.FileExtension}", tex, null);
+                        if (!overwrite && File.Exists($"{output}/{name}{TextureAsset.FileExtension}"))
+                        {
+                            Console.WriteLine($"{output}/{name}{TextureAsset.FileExtension} exists - not writing.");
+                            break;
+                        }
+                        else
+                            AssetFileSerializer.Save($"{output}/{name}{TextureAsset.FileExtension}", tex, null);
                     }
                     else
                     {
                         TextureAsset tex = ColorTextureFactory.Create();
                         tex.Source = new UFile(relativePath);
+                        if (!overwrite && File.Exists($"{output}/{name}{TextureAsset.FileExtension}"))
+                        {
+                            Console.WriteLine($"{output}/{name}{TextureAsset.FileExtension} exists - not writing.");
+                            break;
+                        }
                         AssetFileSerializer.Save($"{output}/{name}{TextureAsset.FileExtension}", tex, null);
                         MaterialAsset mat = DiffuseMaterialFactory.Create();
                         Texture tex2 = AttachedReferenceManager.CreateProxyObject<Texture>(tex.Id, tex.Source.FullPath);
@@ -90,7 +119,11 @@ namespace AutoImporter
                 case "fbx":
                     ModelAsset model = DefaultAssetFactory<ModelAsset>.Create();
                     model.Source = new UFile(relativePath);
-                    //model.Materials.Add();
+                    if (!overwrite && File.Exists($"{output}/{name}{ModelAsset.FileExtension.Split(';')[0]}"))
+                    {
+                        Console.WriteLine($"{output}/{name}{ModelAsset.FileExtension.Split(';')[0]} exists - not writing.");
+                        break;
+                    }
                     AssetFileSerializer.Save($"{output}/{name}{ModelAsset.FileExtension.Split(';')[0]}", model, null);
                     break;
                 default:
