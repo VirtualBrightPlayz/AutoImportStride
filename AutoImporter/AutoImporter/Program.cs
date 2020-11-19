@@ -91,7 +91,7 @@ namespace AutoImporter
                     ModelAsset model = DefaultAssetFactory<ModelAsset>.Create();
                     model.Source = new UFile(relativePath);
                     //model.Materials.Add();
-                    AssetFileSerializer.Save($"{output}/{name}{ModelAsset.FileExtension}", model, null);
+                    AssetFileSerializer.Save($"{output}/{name}{ModelAsset.FileExtension.Split(';')[0]}", model, null);
                     break;
                 default:
                     Console.WriteLine($"The file extension \".{arr[arr.Length - 1]}\" is not supported. ({path})");
