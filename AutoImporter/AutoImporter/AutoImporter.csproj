@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
     <PackageReference Include="Stride.Assets.Models" Version="4.0.0.1-beta04-1317" />
     <PackageReference Include="Stride.Core.Assets.Editor" Version="4.0.0.1-beta04-1317" />
   </ItemGroup>
